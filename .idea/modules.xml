@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/new_project_matp.iml" filepath="$PROJECT_DIR$/.idea/new_project_matp.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/PDS_3_DZ_Liashenko.iml" filepath="$PROJECT_DIR$/.idea/PDS_3_DZ_Liashenko.iml" />
+>>>>>>> origin2/main
     </modules>
   </component>
 </project>
