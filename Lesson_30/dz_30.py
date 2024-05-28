@@ -1,51 +1,128 @@
+from typing import NamedTuple, Any
+from collections import deque
+
+
+class Pair(NamedTuple):
+    key: Any
+    value: Any
+
+
 class HashTable:
 
-    def __init__(self):
-        self.size = int(input("Размер таблицы : "))
-        self.max_element = 0
-        self.element = list()
+    def __init__(self, capacity=8, load_factor_threshold=0.6):
 
-    def capacity(self):
-        if self.size == self.max_element:
-            return True
+        if capacity < 1:
+            raise ValueError('Capacity must be positive numbers')
+        if not (0 < load_factor_threshold <= 1):
+            raise ValueError('Load factor must be between (0, 1)')
+        self._keys = []
+        self._buckets = [deque() for _ in range(capacity)]
+        self._load_factor_threshold = load_factor_threshold
+
+    @classmethod
+    def from_dict(cls, dictionary, capacity=None):
+        hash_table = cls(capacity or len(dictionary))
+        for key, value in dictionary.items():
+            hash_table[key] = value
+        return hash_table
+
+    @property
+    def load_factor(self):
+        return len(self) / self.capacity
+
+    def __delitem__(self, key):
+        bucket = self._buckets[self._index(key)]
+        for index, pair in enumerate(bucket):
+            if pair.key == key:
+                del bucket[index]
+                self._keys.remove(key)
+                break
         else:
+            raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        if self.load_factor >= self._load_factor_threshold:
+            self._resize_and_rehash()
+
+        bucket = self._buckets[self._index(key)]
+
+        for index, pair in enumerate(bucket):
+            if pair.key == key:
+                bucket[index] = Pair(key, value)
+                break
+        else:
+            bucket.append(Pair(key, value))
+            self._keys.append(key)
+
+    def __getitem__(self, key):
+        bucket = self._buckets[self._index(key)]
+        for pair in bucket:
+            if pair.key == key:
+                return pair.value
+        raise KeyError(key)
+
+    def _resize_and_rehash(self):
+        copy = HashTable(capacity=self.capacity * 2)
+        for key, value in self.pairs:
+            copy[key] = value
+        self._buckets = copy._buckets
+
+    def __iter__(self):
+        yield from self.keys
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __str__(self):
+        pairs = []
+        for key, value in self.pairs:
+            pairs.append(f"{key!r}: {value!r}")
+        return "{" + ", ".join(pairs) + "}"
+
+    def __contains__(self, key):
+        try:
+            self[key]
+        except KeyError:
             return False
-
-    def added_element(self, add_element):
-        self.add_element = add_element
-        if self.capacity():
-            print("нет места")
         else:
-            self.element.append(self.add_element)
-            self.max_element += 1
-            print(f"Добавлен{self.add_element}")
+            return True
 
-    def search(self, elements):
-        self.elements = elements
-        if self.elements in self.element:
-            print(f"{self.elements} Есть такой элемент")
-            return self.element
-        else:
-            print(f"{self.elements} Такого элемента нет")
+    def __eq__(self, other):
 
-    def delete_element(self, d_element):
-        self.d_element = d_element
-        if self.d_element in self.element:
-            print(f"Элемент {self.d_element} удален из списка")
-        else:
-            print(f"Элемент {self.d_element} нет в списке")
+        if self is other:
+            return True
+        if type(self) is not type(other):
+            return False
+        return set(self.pairs) == set(other.pairs)
 
-    def print_scrin(self):
-        print(self.element)
+    def copy(self):
+        return HashTable.from_dict(dict(self.pairs), self.capacity)
 
-root = HashTable()
-root.capacity()
-root.added_element({"Artem": 29})
-root.added_element({"Artur": 36})
-root.added_element({"Misha": 27})
-root.added_element({"Sergei": 33})
-root.added_element({"Pavel": 19})
-root.added_element({"Anna": 44})
-root.added_element({"Vova": 31})
-root.added_element({"Volodimir": 45})
-root.print_scrin()
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __repr__(self):
+        cls = self.__class__.__name__
+        return f"{cls}.from_dict({str(self)})"
+
+    @property
+    def pairs(self):
+        return [(key, self[key]) for key in self.keys]
+
+    @property
+    def values(self):
+        return [self[key] for key in self.keys]
+
+    @property
+    def keys(self):
+        return self._keys.copy()
+
+    @property
+    def capacity(self):
+        return len(self._buckets)
+
+    def _index(self, key):
+        return hash(key) % self.capacity
