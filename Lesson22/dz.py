@@ -19,3 +19,4 @@ print(A)
 
 B = grade_chem.intersection(grade_phys,grade_math) # 15 студентов получили хорошо по 1 предмету
 print(B)
+

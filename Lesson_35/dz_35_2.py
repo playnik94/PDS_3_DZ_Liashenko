@@ -19,8 +19,8 @@ print(data.head())
 
 data.columns = ['Petrol_tax', 'Average_income ', 'Paved_Highways', 'Population_Driver_licence(%)', 'Petrol_Consumption']
 
-datas = data[['Petrol_tax', 'Average_income ','Paved_Highways','Population_Driver_licence(%)']].values
-target = data[['Petrol_Consumption']].values
+datas = data[['Petrol_tax', 'Average_income ','Paved_Highways','Population_Driver_licence(%)']].pairs
+target = data[['Petrol_Consumption']].pairs
 data_names = ['Petrol_Consumption', 'Output']
 
 X, y = scale(datas), target
